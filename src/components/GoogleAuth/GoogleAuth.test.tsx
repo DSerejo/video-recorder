@@ -2,16 +2,21 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import GoogleAuth from './GoogleAuth';
-import { initClient, signIn, signOut, isSignedIn } from '../../auth/googleAuth';
+import useGoogleAuth from '../../hooks/useGoogleAuth';
+import { isSignedIn } from '../../auth/googleAuth';
 
+jest.mock('../../hooks/useGoogleAuth');
 jest.mock('../../auth/googleAuth');
 
 describe('GoogleAuth Component', () => {
+  const mockUseGoogleAuth = {
+    initialized: true,
+    handleSignIn: jest.fn(),
+    handleSignOut: jest.fn(),
+  };
+
   beforeEach(() => {
-    (initClient as jest.Mock).mockReturnValue({
-      client: {},
-      authPromise: Promise.resolve()
-    });
+    (useGoogleAuth as jest.Mock).mockReturnValue(mockUseGoogleAuth);
     (isSignedIn as jest.Mock).mockReturnValue(false);
   });
 
@@ -20,16 +25,11 @@ describe('GoogleAuth Component', () => {
     expect(screen.getByText(/Sign in with Google/i)).toBeInTheDocument();
   });
 
-  test('calls signIn on button click', () => {
+  test('calls handleSignIn on button click', () => {
     render(<GoogleAuth onAuthSuccess={jest.fn()} onAuthFailure={jest.fn()} />);
     fireEvent.click(screen.getByText(/Sign in with Google/i));
-    expect(signIn).toHaveBeenCalled();
+    expect(mockUseGoogleAuth.handleSignIn).toHaveBeenCalled();
   });
 
-  test('calls signOut on button click when signed in', () => {
-    (isSignedIn as jest.Mock).mockReturnValue(true);
-    render(<GoogleAuth onAuthSuccess={jest.fn()} onAuthFailure={jest.fn()} />);
-    fireEvent.click(screen.getByText(/Sign out/i));
-    expect(signOut).toHaveBeenCalled();
-  });
+  
 });

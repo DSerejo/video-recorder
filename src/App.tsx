@@ -1,51 +1,41 @@
-import React, { useState, useEffect } from 'react';
-import './App.css';
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import VideoRecorder from './components/VideoRecorder/VideoRecorder';
-import GoogleAuth from './components/GoogleAuth/GoogleAuth';
-import { isTokenValid } from './utils/authUtils';
-import { signOut } from './auth/googleAuth';
+import Gallery from './components/Gallery/Gallery';
+import BottomTabBar from './components/BottomTabBar/BottomTabBar';
+import GoogleAuth from './components/GoogleAuth/GoogleAuth'; // Import GoogleAuth component
+import './App.css';
+import { AuthProvider, useAuth, useAuthDispatch } from './context/AuthContext';
+import { isSignedIn, signIn } from './auth/googleAuth';
 
-function App(): JSX.Element {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-
+const App: React.FC = () => {
+  const { state } = useAuth();
+  const dispatch = useAuthDispatch();
   useEffect(() => {
-    if (isTokenValid()) {
-      setIsAuthenticated(true);
+    // Example: Dispatch LOGIN action only once when the component mounts
+    if (!state.isAuthenticated && isSignedIn() && state.client)  {
+      dispatch({ type: 'LOGIN' });
+      signIn(state.client);
     }
-  }, []);
-
-  const handleAuthSuccess = () => {
-    setIsAuthenticated(true);
-  };
-
-  const handleAuthFailure = () => {
-    setIsAuthenticated(false);
-  };
-
-  const handleSignOut = () => {
-    signOut();
-    setIsAuthenticated(false);
-  };
-
+  }, [state.isAuthenticated, state.client]);
   return (
-    <div className="App">
-      {/* <header className="App-header">
-        <h1>Video Recorder App</h1>
-      </header> */}
-      <main className="App-main">
-        {isAuthenticated ? (
-          <>
-            <VideoRecorder />
-            <button className="btn btn-secondary mt-2" onClick={handleSignOut}>
-              Sign out
-            </button>
-          </>
+      <Router>
+        <div className="App">
+        {!state.isAuthenticated ? (
+            <GoogleAuth onAuthFailure={() => dispatch({ type: 'SET_ERROR', payload: 'Error' })} onAuthSuccess={() => dispatch({ type: 'LOGIN' })} /> // Render GoogleAuth if not authenticated
         ) : (
-          <GoogleAuth onAuthSuccess={handleAuthSuccess} onAuthFailure={handleAuthFailure} />
+          <>
+            <Routes>
+              <Route path="/video" element={<VideoRecorder />} />
+              <Route path="/gallery" element={<Gallery />} />
+              <Route path="*" element={<Navigate to="/video" />} />
+            </Routes>
+            <BottomTabBar />
+          </>
         )}
-      </main>
-    </div>
+        </div>
+      </Router>
   );
-}
+};
 
 export default App;

@@ -25,7 +25,7 @@ export const initClient = () => {
 
 };
 
-export const signIn = (client: google.accounts.TokenClient) => {
+export const signIn = (client: google.accounts.oauth2.TokenClient) => {
     client.requestAccessToken();
 };
 

@@ -1,47 +1,74 @@
 import { useState, useRef } from 'react';
-import streamVideoChunks from '../utils/streamVideoChunks';
+import Timer from '../utils/timer';
 
 const useVideoRecorder = () => {
   const [recording, setRecording] = useState(false);
-  const [status, setStatus] = useState<string>('Idle');
+  const [recordingTime, setRecordingTime] = useState<number>(0);
+  const [recordingId, setRecordingId] = useState<string | null>(null);
+  const [latestChunk, setLatestChunk] = useState<Blob | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const timer = useRef<Timer | null>(null);
 
-  const startRecording = async () => {
-    setStatus('Starting recording...');
+  const formatTimeInMinutesSeconds = (time: number) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = time % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const startStreaming = async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
     if (videoRef.current) {
       videoRef.current.srcObject = stream;
     }
-    const mediaRecorder = new MediaRecorder(stream);
+  };
+  const startRecording = async () => {
+    await startStreaming();
+    setRecordingId(Date.now().toString() + '.webm');
+    if (!timer.current) {
+      timer.current = new Timer();
+    }
+    timer.current.reset();
+    timer.current.start();
+    timer.current.onTick((time) => {
+      setRecordingTime(time);
+    });
+    const mediaRecorder = new MediaRecorder(videoRef.current?.srcObject as MediaStream);
     mediaRecorderRef.current = mediaRecorder;
 
     mediaRecorder.ondataavailable = (event) => {
       const chunk = event.data;
-      streamVideoChunks(chunk, (streamedChunk) => {
-        console.log('Streaming chunk:', streamedChunk);
-        // Here you can handle the streamed chunk, e.g., send it to a server
-      });
+      setLatestChunk(chunk);
     };
 
     mediaRecorder.onstop = () => {
-      setStatus('Recording stopped');
+      setRecording(false);
     };
 
-    mediaRecorder.start(1000);
+    mediaRecorder.start(5000);
     setRecording(true);
-    setStatus('Recording...');
   };
 
   const stopRecording = () => {
     if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.stop();
       setRecording(false);
-      setStatus('Stopping recording...');
+      mediaRecorderRef.current.stop();
+      timer.current?.stop();
     }
   };
 
-  return { videoRef, recording, startRecording, stopRecording, status };
+  return { 
+    videoRef, 
+    recording, 
+    startRecording, 
+    stopRecording, 
+    startStreaming, 
+    mediaRecorderRef, 
+    recordingTime, 
+    formatTimeInMinutesSeconds,
+    recordingId,
+    latestChunk,
+  };
 };
 
-export default useVideoRecorder;
+  export default useVideoRecorder;

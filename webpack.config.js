@@ -1,6 +1,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
+
 module.exports = {
   entry: './src/index.tsx',
   output: {
@@ -23,6 +24,14 @@ module.exports = {
         use: ['style-loader', 'css-loader'],
       },
       {
+        test: /\.scss$/,
+        use: [
+            'style-loader', // Injects styles into DOM
+            'css-loader',   // Translates CSS into CommonJS
+            'sass-loader'   // Compiles Sass to CSS
+        ],
+    },
+      {
         test: /\.(png|svg|jpg|jpeg|gif|ico)$/,
         exclude: /node_modules/,
         use: ['file-loader?name=[name].[ext]'] // ?name=[name].[ext] is only necessary to preserve the original file name
@@ -40,6 +49,8 @@ module.exports = {
     hot: true,
     port: 3000,
     allowedHosts: "all",
+    historyApiFallback: true
   },
   mode: 'development',
+  devtool: 'source-map',
 };

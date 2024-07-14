@@ -3,3 +3,7 @@ export const isTokenValid = (): boolean => {
   // Here you can add more sophisticated token validation if needed
   return !!token;
 };
+
+export const getAccessToken = (): string | null => {
+  return localStorage.getItem('access_token');
+};

@@ -4,6 +4,7 @@ import './index.css';
 import App from './App';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 import reportWebVitals from './reportWebVitals';
+import { AuthProvider } from './context/AuthContext';
 
 const waitForGisScript = () => {
   return new Promise<void>((resolve) => {
@@ -18,11 +19,27 @@ const waitForGisScript = () => {
   });
 };
 
-waitForGisScript().then(() => {
+const waitForGapi = () => {
+  return new Promise<void>((resolve) => {
+    const checkGapiLoaded = () => {
+      if ((window as any).gapi) {
+        gapi.load('client', resolve);
+      } else {
+        setTimeout(checkGapiLoaded, 100);
+      }
+    };
+    checkGapiLoaded();
+  });
+};
+
+Promise.all([waitForGisScript(), waitForGapi()]).then(() => {
   const root = ReactDOM.createRoot(document.getElementById('root')!);
   root.render(
     <React.StrictMode>
-      <App />
+
+      <AuthProvider>
+        <App />
+      </AuthProvider>
     </React.StrictMode>
   );
 
