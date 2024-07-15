@@ -32,7 +32,7 @@
   },
   "scripts": {
     "start": "webpack serve --open",
-    "build": "webpack --mode production",
+    "build": "rm -rf dist && rm dist.zip && webpack --mode production && cd dist; zip -r ../dist.zip .",
     "test": "jest",
     "eject": "react-scripts eject"
   },

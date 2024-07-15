@@ -11,9 +11,14 @@ const processQueue = async (resumableUploadUrl: string, end: boolean) => {
 
   while (chunkQueue.length > 0) {
     const chunk = chunkQueue.shift()!;
-    console.log(chunk, startByte, startByte + chunk.size - 1, pendingChunk);
+    
     await uploadChunk(resumableUploadUrl, chunk, startByte, startByte + chunk.size - 1, end);
-    startByte += chunk.size;
+    
+    if (end) {
+      startByte  = 0;
+    }else{
+      startByte += chunk.size;
+    }
   }
 
   isUploading = false;

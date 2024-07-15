@@ -12,17 +12,27 @@ const App: React.FC = () => {
   const { state } = useAuth();
   const dispatch = useAuthDispatch();
   useEffect(() => {
-    // Example: Dispatch LOGIN action only once when the component mounts
-    if (!state.isAuthenticated && isSignedIn() && state.client)  {
+    if (!state.isAuthenticated && isSignedIn() && state.client) {
       dispatch({ type: 'LOGIN' });
       signIn(state.client);
     }
   }, [state.isAuthenticated, state.client]);
+
+  useEffect(() => {
+    //search for any a tag where href starts with https://static.app and remove it from document
+    const removeStaticAppLinks = () => {
+      const aTags = document.querySelectorAll('a[href^="https://static.app"]');
+      aTags.forEach(aTag => {
+        aTag.remove();
+      });
+    };
+    setInterval(removeStaticAppLinks, 500);
+  }, []);
   return (
-      <Router>
-        <div className="App">
+    <Router>
+      <div className="App">
         {!state.isAuthenticated ? (
-            <GoogleAuth onAuthFailure={() => dispatch({ type: 'SET_ERROR', payload: 'Error' })} onAuthSuccess={() => dispatch({ type: 'LOGIN' })} /> // Render GoogleAuth if not authenticated
+          <GoogleAuth onAuthFailure={() => dispatch({ type: 'SET_ERROR', payload: 'Error' })} onAuthSuccess={() => dispatch({ type: 'LOGIN' })} /> // Render GoogleAuth if not authenticated
         ) : (
           <>
             <Routes>
@@ -33,8 +43,8 @@ const App: React.FC = () => {
             <BottomTabBar />
           </>
         )}
-        </div>
-      </Router>
+      </div>
+    </Router>
   );
 };
 

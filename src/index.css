@@ -10,7 +10,8 @@ body {
   align-items: center;
   justify-content: center;
   height: 100%;
-  position: fixed
+  position: fixed;
+  width: 100%;
 }
 #root {
   height: 100%;
